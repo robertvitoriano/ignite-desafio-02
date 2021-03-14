@@ -10,19 +10,63 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+
+  const {username} = request.headers
+
+  const user = users.find((user)=>user.username === username)
+  if(!user) return response.status(404).json({error:'User not found'})
+
+  request.user = user
+
+  next()
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+
+  const {username} = request.headers
+
+  const user = users.find((userElement)=> userElement.username === username)
+
+  if(!user) return response.status(404).json({error:'user not found'})
+
+  request.user =  user
+
+  if(!user.pro && user.todos.length === 10 ){
+    return response.status(400).json({error:'user no able to create a todo'})
+  }
+   
+  next()
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+
+  const {username} = request.headers
+  const{id} = request.params
+
+  const user = users.find((user)=>user.username === username)
+  if(!user) return response.status(404).json({error:'User not found'})
+
+  request.user = user
+
+   const todoExists = user.todos.some((todo)=>todo.id===id)
+
+   if(!todoExists) response.status(404).json({error:'todo not found'})
+
+  next()
+
 }
 
 function findUserById(request, response, next) {
-  // Complete aqui
+
+  const id = request.params
+
+  const user = users.find((userElement)=>userElement.id===id)
+  if(!user) response.status(404).json({error:'user not found'})
+
+  request.user = user
+
+  next()
+
 }
 
 app.post('/users', (request, response) => {
