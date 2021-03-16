@@ -46,12 +46,18 @@ function checksTodoExists(request, response, next) {
   const user = users.find((user)=>user.username === username)
   if(!user) return response.status(404).json({error:'User not found'})
 
-  request.user = user
+
 
    const todoExists = user.todos.some((todo)=>todo.id===id)
 
-   if(!todoExists) response.status(404).json({error:'todo not found'})
+   if(!todoExists) {
+    return response.status(404).json({error:'todo not found'})
+    }
 
+    if(!validate(id)){
+      request.user = user
+      request.todo = {id}
+}
   next()
 
 }
@@ -126,8 +132,12 @@ app.post('/todos', checksExistsUserAccount, checksCreateTodosUserAvailability, (
     done: false,
     created_at: new Date()
   };
+  if(!user.pro && user.todos.length >=10){
+    return response.status(400).json({error:'User already has 10 todos, update to pro to be able to have more !'})
+  }
 
   user.todos.push(newTodo);
+
 
   return response.status(201).json(newTodo);
 });
