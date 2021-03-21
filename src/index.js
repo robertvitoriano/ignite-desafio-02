@@ -23,16 +23,10 @@ function checksExistsUserAccount(request, response, next) {
 
 function checksCreateTodosUserAvailability(request, response, next) {
 
-  const {username} = request.headers
-
-  const user = users.find((userElement)=> userElement.username === username)
-
-  if(!user) return response.status(404).json({error:'user not found'})
-
-  request.user =  user
+   const {user} = request
 
   if(!user.pro && user.todos.length === 10 ){
-    return response.status(400).json({error:'user no able to create a todo'})
+    return response.status(403).json({error:'user no able to create a todo'})
   }
    
   next()
@@ -50,14 +44,13 @@ function checksTodoExists(request, response, next) {
 
    const todoExists = user.todos.some((todo)=>todo.id===id)
 
-   if(!todoExists) {
-    return response.status(404).json({error:'todo not found'})
-    }
+   if(!validate(id)) return response.status(400).json({error:'is not uuid'})
 
-    if(!validate(id)){
-      return response.status(400).json({error:''})
+   if(!todoExists)  return response.status(404).json({error:'todo not found'})
+    
 
-}
+
+
   request.user = user
   request.todo =  user.todos.find((todo)=>todo.id ===id)
   next()
@@ -66,10 +59,11 @@ function checksTodoExists(request, response, next) {
 
 function findUserById(request, response, next) {
 
-  const id = request.params
+  const {id} = request.params
 
   const user = users.find((userElement)=>userElement.id===id)
-  if(!user) response.status(404).json({error:'user not found'})
+  
+  if(!user)  return response.status(404).json({error:'user not found'})
 
   request.user = user
 
@@ -102,7 +96,7 @@ app.post('/users', (request, response) => {
 app.get('/users/:id', findUserById, (request, response) => {
   const { user } = request;
 
-  return response.json(user);
+  return response.json({name:user.name, username:user.username, todos:user.todos, pro:user.pro});
 });
 
 app.patch('/users/:id/pro', findUserById, (request, response) => {
